@@ -20,6 +20,9 @@ RUN apt-get -y install build-essential
 RUN apt-get -y install gcc
 RUN apt-get -y install python3
 RUN apt-get -y install maven
+RUN apt-get -y install libz-dev
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
+RUN apt-get -y install openjdk-14-jdk
 
 #ENV PATH="$venv/bin:$PATH"
 
