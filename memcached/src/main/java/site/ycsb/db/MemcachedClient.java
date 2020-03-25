@@ -21,16 +21,12 @@ import site.ycsb.ByteIterator;
 import site.ycsb.DB;
 import site.ycsb.DBException;
 import site.ycsb.Status;
-import site.ycsb.StringByteIterator;
 
 import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.net.InetSocketAddress;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,12 +40,6 @@ import net.spy.memcached.FailureMode;
 import net.spy.memcached.internal.GetFuture;
 import net.spy.memcached.internal.OperationFuture;
 
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ObjectNode;
-
 import org.apache.log4j.Logger;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -60,8 +50,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 public class MemcachedClient extends DB {
 
   private final Logger logger = Logger.getLogger(getClass());
-
-  protected static final ObjectMapper MAPPER = new ObjectMapper();
 
   private boolean checkOperationStatus;
   private long shutdownTimeoutMillis;
@@ -183,11 +171,9 @@ public class MemcachedClient extends DB {
       Map<String, ByteIterator> result) {
     key = createQualifiedKey(table, key);
     try {
+      // This is all we need to actually read the document into a string.
       GetFuture<Object> future = memcachedClient().asyncGet(key);
-      Object document = future.get();
-      if (document != null) {
-        fromJson((String) document, fields, result);
-      }
+      String document = (String) future.get();
       return Status.OK;
     } catch (Exception e) {
       logger.error("Error encountered for key: " + key, e);
@@ -207,6 +193,8 @@ public class MemcachedClient extends DB {
       String table, String key, Map<String, ByteIterator> values) {
     key = createQualifiedKey(table, key);
     try {
+      // `toJson` returns an array of zeros of the almost same length as the
+      // original actual json we would have normally produced.
       OperationFuture<Boolean> future =
           memcachedClient().replace(key, objectExpirationTime, toJson(values));
       return getReturnCode(future);
@@ -267,37 +255,20 @@ public class MemcachedClient extends DB {
     return MessageFormat.format("{0}-{1}", table, key);
   }
 
-  protected static void fromJson(
-      String value, Set<String> fields,
-      Map<String, ByteIterator> result) throws IOException {
-    JsonNode json = MAPPER.readTree(value);
-    boolean checkFields = fields != null && !fields.isEmpty();
-    for (Iterator<Map.Entry<String, JsonNode>> jsonFields = json.getFields();
-         jsonFields.hasNext();
-         /* increment in loop body */) {
-      Map.Entry<String, JsonNode> jsonField = jsonFields.next();
-      String name = jsonField.getKey();
-      if (checkFields && !fields.contains(name)) {
-        continue;
-      }
-      JsonNode jsonValue = jsonField.getValue();
-      if (jsonValue != null && !jsonValue.isNull()) {
-        result.put(name, new StringByteIterator(jsonValue.asText()));
-      }
-    }
-  }
-
-  protected static String toJson(Map<String, ByteIterator> values)
+  protected static byte[] toJson(Map<String, ByteIterator> values)
       throws IOException {
-    ObjectNode node = MAPPER.createObjectNode();
-    Map<String, String> stringMap = StringByteIterator.getStringMap(values);
-    for (Map.Entry<String, String> pair : stringMap.entrySet()) {
-      node.put(pair.getKey(), pair.getValue());
+
+    // Compute the length of the json that would be produced (approximately).
+    int length = 2; // open and close { curly braces }
+
+    for (Map.Entry<String, ByteIterator> pair : values.entrySet()) {
+      length += 0
+             + 4 // the quotes around the key and value
+             + 1 // the colon between keys and values
+             + pair.getKey().length()
+             + pair.getValue().bytesLeft();
     }
-    JsonFactory jsonFactory = new JsonFactory();
-    Writer writer = new StringWriter();
-    JsonGenerator jsonGenerator = jsonFactory.createJsonGenerator(writer);
-    MAPPER.writeTree(jsonGenerator, node);
-    return writer.toString();
+
+    return new byte[length];
   }
 }
