@@ -107,9 +107,7 @@ public class KyotocabinetDBClient extends DB {
   @Override
   public Status read(final String table, final String key, final Set<String> fields,
       final Map<String, ByteIterator> result) {
-    try {
-      assert(fields == null);
-    } catch (AssertionError ae) {
+    if (fields != null) {
       throw new IllegalArgumentException("read(..) null expected for `fields` parameter");
     }
 
@@ -118,9 +116,8 @@ public class KyotocabinetDBClient extends DB {
       String value = kcDb.get(key);
       if(value == null) {
         return Status.NOT_FOUND;
-      } else {
-        result.put(key, new StringByteIterator(value));
       }
+      result.put(key, new StringByteIterator(value));
       return Status.OK;
     } catch(final kyotocabinet.Error e) {
       System.out.printf("%s: %s\n", e.name(), e.message());
@@ -131,7 +128,7 @@ public class KyotocabinetDBClient extends DB {
   @Override
   public Status scan(final String table, final String startkey, final int recordcount, final Set<String> fields,
         final Vector<HashMap<String, ByteIterator>> result) {
-    throw new UnsupportedOperationException();
+    return Status.NOT_IMPLEMENTED;
   }
 
   @Override
@@ -146,7 +143,7 @@ public class KyotocabinetDBClient extends DB {
       String kcVal = values2value(values);
       if(!kcDb.set(key, kcVal)) {
         System.err.printf("set error: %s - %s\n", kcDb.error().name(), kcDb.error());
-        throw new IllegalArgumentException();
+        return Status.ERROR;
       }
       return Status.OK;
     } catch (Exception e){
@@ -157,15 +154,15 @@ public class KyotocabinetDBClient extends DB {
 
   @Override
   public Status delete(final String table, final String key) {
-    throw new UnsupportedOperationException();
+    return Status.NOT_IMPLEMENTED;
   }
 
   public String values2value(Map<String, ByteIterator> values) {
     String value = "";
     for(ByteIterator v : values.values()) {
-      value += v.toString();
+      // Using the StringByteIterator makes this data obliv.
+      value += new StringByteIterator(v.toString()).toString();
     }
-    assert(new StringByteIterator(value).bytesLeft() == ycsbFieldcount * ycsbFieldlength);
     return value;
   }
 }
