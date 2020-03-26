@@ -66,14 +66,14 @@ public class TestTimeSeriesWorkload {
     long timestamp = 1451606400;
     for (int i = 0; i < db.keys.size(); i++) {
       assertEquals(db.keys.get(i), "AAAA");
-      assertEquals(db.values.get(i).get("AA").toString(), "AAAA");
+      assertEquals(db.values.get(i).get("AA").toString(), "\0\0\0\0");
       assertEquals(Utils.bytesToLong(db.values.get(i).get(
           TimeSeriesWorkload.TIMESTAMP_KEY_PROPERTY_DEFAULT).toArray()), timestamp);
       assertNotNull(db.values.get(i).get(TimeSeriesWorkload.VALUE_KEY_PROPERTY_DEFAULT));
       if (i % 2 == 0) {
-        assertEquals(db.values.get(i).get("AB").toString(), "AAAA");
+        assertEquals(db.values.get(i).get("AB").toString(), "\0\0\0\0");
       } else {
-        assertEquals(db.values.get(i).get("AB").toString(), "AAAB");
+        assertEquals(db.values.get(i).get("AB").toString(), "\0\0\0\0");
         timestamp += 60;
       }
     }
@@ -89,14 +89,14 @@ public class TestTimeSeriesWorkload {
     timestamp = 1451606400;
     for (int i = 0; i < db.keys.size(); i++) {
       assertEquals(db.keys.get(i), "AAAB");
-      assertEquals(db.values.get(i).get("AA").toString(), "AAAA");
+      assertEquals(db.values.get(i).get("AA").toString(), "\0\0\0\0");
       assertEquals(Utils.bytesToLong(db.values.get(i).get(
           TimeSeriesWorkload.TIMESTAMP_KEY_PROPERTY_DEFAULT).toArray()), timestamp);
       assertNotNull(db.values.get(i).get(TimeSeriesWorkload.VALUE_KEY_PROPERTY_DEFAULT));
       if (i % 2 == 0) {
-        assertEquals(db.values.get(i).get("AB").toString(), "AAAA");
+        assertEquals(db.values.get(i).get("AB").toString(), "\0\0\0\0");
       } else {
-        assertEquals(db.values.get(i).get("AB").toString(), "AAAB");
+        assertEquals(db.values.get(i).get("AB").toString(), "\0\0\0\0");
         timestamp += 60;
       }
     }
@@ -147,7 +147,7 @@ public class TestTimeSeriesWorkload {
     long timestamp = 1451606400;
     for (int i = 0; i < db.keys.size(); i++) {
       assertEquals(db.keys.get(i), "AAAA");
-      assertEquals(db.values.get(i).get("AA").toString(), "AAAA");
+      assertEquals(db.values.get(i).get("AA").toString(), "\0\0\0\0");
       assertEquals(Utils.bytesToLong(db.values.get(i).get(
           TimeSeriesWorkload.TIMESTAMP_KEY_PROPERTY_DEFAULT).toArray()), timestamp);
       assertTrue(((NumericByteIterator) db.values.get(i)
@@ -173,15 +173,15 @@ public class TestTimeSeriesWorkload {
     long timestamp = 1451606400;
     for (int i = 0; i < db.keys.size(); i++) {
       assertEquals(db.keys.get(i), "AAAA");
-      assertEquals(db.values.get(i).get("AA").toString(), "AAAA");
+      assertEquals(db.values.get(i).get("AA").toString(), "\0\0\0\0");
       assertEquals(Utils.bytesToLong(db.values.get(i).get(
           TimeSeriesWorkload.TIMESTAMP_KEY_PROPERTY_DEFAULT).toArray()), timestamp);
       assertTrue(((NumericByteIterator) db.values.get(i)
           .get(TimeSeriesWorkload.VALUE_KEY_PROPERTY_DEFAULT)).isFloatingPoint());
       if (i % 2 == 0) {
-        assertEquals(db.values.get(i).get("AB").toString(), "AAAA");
+        assertEquals(db.values.get(i).get("AB").toString(), "\0\0\0\0");
       } else {
-        assertEquals(db.values.get(i).get("AB").toString(), "AAAB");
+        assertEquals(db.values.get(i).get("AB").toString(), "\0\0\0\0");
         timestamp += 60;
       }
     }
@@ -204,15 +204,15 @@ public class TestTimeSeriesWorkload {
     long timestamp = 1451606400;
     int metricCtr = 0;
     for (int i = 0; i < db.keys.size(); i++) {
-      assertEquals(db.values.get(i).get("AA").toString(), "AAAA");
+      assertEquals(db.values.get(i).get("AA").toString(), "\0\0\0\0");
       assertEquals(Utils.bytesToLong(db.values.get(i).get(
           TimeSeriesWorkload.TIMESTAMP_KEY_PROPERTY_DEFAULT).toArray()), timestamp);
       assertTrue(((NumericByteIterator) db.values.get(i)
           .get(TimeSeriesWorkload.VALUE_KEY_PROPERTY_DEFAULT)).isFloatingPoint());
       if (i % 2 == 0) {
-        assertEquals(db.values.get(i).get("AB").toString(), "AAAA");
+        assertEquals(db.values.get(i).get("AB").toString(), "\0\0\0\0");
       } else {
-        assertEquals(db.values.get(i).get("AB").toString(), "AAAB");
+        assertEquals(db.values.get(i).get("AB").toString(), "\0\0\0\0");
       }
       if (metricCtr++ > 1) {
         assertEquals(db.keys.get(i), "AAAB");
@@ -243,15 +243,15 @@ public class TestTimeSeriesWorkload {
     long timestamp = 1451606400;
     for (int i = 0; i < db.keys.size(); i++) {
       assertEquals(db.keys.get(i), "AAAA"); // <-- key 1
-      assertEquals(db.values.get(i).get("AA").toString(), "AAAA");
+      assertEquals(db.values.get(i).get("AA").toString(), "\0\0\0\0");
       assertEquals(Utils.bytesToLong(db.values.get(i).get(
           TimeSeriesWorkload.TIMESTAMP_KEY_PROPERTY_DEFAULT).toArray()), timestamp);
       assertTrue(((NumericByteIterator) db.values.get(i)
           .get(TimeSeriesWorkload.VALUE_KEY_PROPERTY_DEFAULT)).isFloatingPoint());
       if (i % 2 == 0) {
-        assertEquals(db.values.get(i).get("AB").toString(), "AAAA");
+        assertEquals(db.values.get(i).get("AB").toString(), "\0\0\0\0");
       } else {
-        assertEquals(db.values.get(i).get("AB").toString(), "AAAB");
+        assertEquals(db.values.get(i).get("AB").toString(), "\0\0\0\0");
         timestamp += 60;
       }
     }
@@ -267,14 +267,14 @@ public class TestTimeSeriesWorkload {
     timestamp = 1451606400;
     for (int i = 0; i < db.keys.size(); i++) {
       assertEquals(db.keys.get(i), "AAAB"); // <-- key 2
-      assertEquals(db.values.get(i).get("AA").toString(), "AAAA");
+      assertEquals(db.values.get(i).get("AA").toString(), "\0\0\0\0");
       assertEquals(Utils.bytesToLong(db.values.get(i).get(
           TimeSeriesWorkload.TIMESTAMP_KEY_PROPERTY_DEFAULT).toArray()), timestamp);
       assertNotNull(db.values.get(i).get(TimeSeriesWorkload.VALUE_KEY_PROPERTY_DEFAULT));
       if (i % 2 == 0) {
-        assertEquals(db.values.get(i).get("AB").toString(), "AAAA");
+        assertEquals(db.values.get(i).get("AB").toString(), "\0\0\0\0");
       } else {
-        assertEquals(db.values.get(i).get("AB").toString(), "AAAB");
+        assertEquals(db.values.get(i).get("AB").toString(), "\0\0\0\0");
         timestamp += 60;
       }
     }
@@ -299,15 +299,15 @@ public class TestTimeSeriesWorkload {
     long timestamp = 1451606400;
     for (int i = 0; i < db.keys.size(); i++) {
       assertEquals(db.keys.get(i), "AAAA");
-      assertEquals(db.values.get(i).get("AA").toString(), "AAAA");
+      assertEquals(db.values.get(i).get("AA").toString(), "\0\0\0\0");
       assertEquals(Utils.bytesToLong(db.values.get(i).get(
           TimeSeriesWorkload.TIMESTAMP_KEY_PROPERTY_DEFAULT).toArray()), timestamp);
       assertTrue(((NumericByteIterator) db.values.get(i)
           .get(TimeSeriesWorkload.VALUE_KEY_PROPERTY_DEFAULT)).isFloatingPoint());
       if (i % 2 == 0) {
-        assertEquals(db.values.get(i).get("AB").toString(), "AAAA");
+        assertEquals(db.values.get(i).get("AB").toString(), "\0\0\0\0");
       } else {
-        assertEquals(db.values.get(i).get("AB").toString(), "AAAB");
+        assertEquals(db.values.get(i).get("AB").toString(), "\0\0\0\0");
         timestamp += 60;
       }
     }
@@ -321,14 +321,14 @@ public class TestTimeSeriesWorkload {
     timestamp = 1451606400;
     int metricCtr = 0;
     for (int i = 0; i < db.keys.size(); i++) {
-      assertEquals(db.values.get(i).get("AA").toString(), "AAAA");
+      assertEquals(db.values.get(i).get("AA").toString(), "\0\0\0\0");
       assertEquals(Utils.bytesToLong(db.values.get(i).get(
           TimeSeriesWorkload.TIMESTAMP_KEY_PROPERTY_DEFAULT).toArray()), timestamp);
       assertNotNull(db.values.get(i).get(TimeSeriesWorkload.VALUE_KEY_PROPERTY_DEFAULT));
       if (i % 2 == 0) {
-        assertEquals(db.values.get(i).get("AB").toString(), "AAAA");
+        assertEquals(db.values.get(i).get("AB").toString(), "\0\0\0\0");
       } else {
-        assertEquals(db.values.get(i).get("AB").toString(), "AAAB");
+        assertEquals(db.values.get(i).get("AB").toString(), "\0\0\0\0");
       }
       if (metricCtr++ > 1) {
         assertEquals(db.keys.get(i), "AAAC");
@@ -343,52 +343,6 @@ public class TestTimeSeriesWorkload {
   }
   
   @Test
-  public void insertWithValidation() throws Exception {
-    final Properties p = getUTProperties();
-    p.put(CoreWorkload.FIELD_COUNT_PROPERTY, "1");
-    p.put(CoreWorkload.DATA_INTEGRITY_PROPERTY, "true");
-    p.put(TimeSeriesWorkload.VALUE_TYPE_PROPERTY, "integers");
-    final TimeSeriesWorkload wl = getWorkload(p, true);
-    final Object threadState = wl.initThread(p, 0, 1);
-    
-    final MockDB db = new MockDB();
-    for (int i = 0; i < 74; i++) {
-      assertTrue(wl.doInsert(db, threadState));
-    }
-    
-    assertEquals(db.keys.size(), 74);
-    assertEquals(db.values.size(), 74);
-    long timestamp = 1451606400;
-    for (int i = 0; i < db.keys.size(); i++) {
-      assertEquals(db.keys.get(i), "AAAA");
-      assertEquals(db.values.get(i).get("AA").toString(), "AAAA");
-      assertEquals(Utils.bytesToLong(db.values.get(i).get(
-          TimeSeriesWorkload.TIMESTAMP_KEY_PROPERTY_DEFAULT).toArray()), timestamp);
-      assertFalse(((NumericByteIterator) db.values.get(i)
-          .get(TimeSeriesWorkload.VALUE_KEY_PROPERTY_DEFAULT)).isFloatingPoint());
-      
-      // validation check
-      final TreeMap<String, String> validationTags = new TreeMap<String, String>();
-      for (final Entry<String, ByteIterator> entry : db.values.get(i).entrySet()) {
-        if (entry.getKey().equals(TimeSeriesWorkload.VALUE_KEY_PROPERTY_DEFAULT) || 
-            entry.getKey().equals(TimeSeriesWorkload.TIMESTAMP_KEY_PROPERTY_DEFAULT)) {
-          continue;
-        }
-        validationTags.put(entry.getKey(), entry.getValue().toString());
-      }
-      assertEquals(wl.validationFunction(db.keys.get(i), timestamp, validationTags), 
-          ((NumericByteIterator) db.values.get(i).get(TimeSeriesWorkload.VALUE_KEY_PROPERTY_DEFAULT)).getLong());
-      
-      if (i % 2 == 0) {
-        assertEquals(db.values.get(i).get("AB").toString(), "AAAA");
-      } else {
-        assertEquals(db.values.get(i).get("AB").toString(), "AAAB");
-        timestamp += 60;
-      }
-    }
-  }
-  
-  @Test
   public void read() throws Exception {
     final Properties p = getUTProperties();
     final TimeSeriesWorkload wl = getWorkload(p, true);
@@ -398,40 +352,6 @@ public class TestTimeSeriesWorkload {
     for (int i = 0; i < 20; i++) {
       wl.doTransactionRead(db, threadState);
     }
-  }
-  
-  @Test
-  public void verifyRow() throws Exception {
-    final Properties p = getUTProperties();
-    final TimeSeriesWorkload wl = getWorkload(p, true);
-    
-    final TreeMap<String, String> validationTags = new TreeMap<String, String>();
-    final HashMap<String, ByteIterator> cells = new HashMap<String, ByteIterator>();
-    
-    validationTags.put("AA", "AAAA");
-    cells.put("AA", new StringByteIterator("AAAA"));
-    validationTags.put("AB", "AAAB");
-    cells.put("AB", new StringByteIterator("AAAB"));
-    long hash = wl.validationFunction("AAAA", 1451606400L, validationTags);
-        
-    cells.put(TimeSeriesWorkload.TIMESTAMP_KEY_PROPERTY_DEFAULT, new NumericByteIterator(1451606400L));
-    cells.put(TimeSeriesWorkload.VALUE_KEY_PROPERTY_DEFAULT, new NumericByteIterator(hash));
-    
-    assertEquals(wl.verifyRow("AAAA", cells), Status.OK);
-    
-    // tweak the last value a bit
-    for (final ByteIterator it : cells.values()) {
-      it.reset();
-    }
-    cells.put(TimeSeriesWorkload.VALUE_KEY_PROPERTY_DEFAULT, new NumericByteIterator(hash + 1));
-    assertEquals(wl.verifyRow("AAAA", cells), Status.UNEXPECTED_STATE);
-    
-    // no value cell, returns an unexpected state
-    for (final ByteIterator it : cells.values()) {
-      it.reset();
-    }
-    cells.remove(TimeSeriesWorkload.VALUE_KEY_PROPERTY_DEFAULT);
-    assertEquals(wl.verifyRow("AAAA", cells), Status.UNEXPECTED_STATE);
   }
   
   @Test

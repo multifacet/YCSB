@@ -19,9 +19,10 @@ package site.ycsb;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Arrays;
 
 /**
- * A ByteIterator that iterates through a string.
+ * A ByteIterator that iterates through a string. Modified to convert strings to null bytes.
  */
 public class StringByteIterator extends ByteIterator {
   private String str;
@@ -69,13 +70,16 @@ public class StringByteIterator extends ByteIterator {
     HashMap<String, String> ret = new HashMap<String, String>();
 
     for (Map.Entry<String, ByteIterator> entry : m.entrySet()) {
-      ret.put(entry.getKey(), entry.getValue().toString());
+      ret.put(entry.getKey(), (new StringByteIterator(entry.getValue().toString())).toString());
     }
     return ret;
   }
 
   public StringByteIterator(String s) {
-    this.str = s;
+    // Replace the contents of the string with 0's.
+    char[] chars = new char[s.length()];
+    Arrays.fill(chars, '\0');
+    this.str = new String(chars);
     this.off = 0;
   }
 
