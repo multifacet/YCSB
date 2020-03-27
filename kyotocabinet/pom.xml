@@ -35,7 +35,7 @@ LICENSE file.
       <artifactId>kyotocabinet</artifactId>
       <version>${kyotocabinet.version}</version>
       <scope>system</scope>
-      <systemPath>${basedir}/kyotocabinet-java-1.24/kyotocabinet.jar</systemPath>
+      <systemPath>${basedir}/kc-java/kyotocabinet.jar</systemPath>
     </dependency>
     <dependency>
       <groupId>site.ycsb</groupId>
