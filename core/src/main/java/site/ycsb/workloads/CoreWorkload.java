@@ -86,7 +86,7 @@ public class CoreWorkload extends Workload {
   /**
    * Default number of fields in a record.
    */
-  public static final String FIELD_COUNT_PROPERTY_DEFAULT = "10";
+  public static final String FIELD_COUNT_PROPERTY_DEFAULT = "4";
   
   private List<String> fieldnames;
 
@@ -113,7 +113,7 @@ public class CoreWorkload extends Workload {
   /**
    * The default maximum length of a field in bytes.
    */
-  public static final String FIELD_LENGTH_PROPERTY_DEFAULT = "100";
+  public static final String FIELD_LENGTH_PROPERTY_DEFAULT = "4092";
 
   /**
    * The name of the property for the minimum length of a field in bytes.
