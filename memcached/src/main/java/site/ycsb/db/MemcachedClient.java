@@ -80,15 +80,15 @@ public class MemcachedClient extends DB {
   public static final String DEFAULT_READ_BUFFER_SIZE = "3000000";
 
   public static final String OP_TIMEOUT_PROPERTY = "memcached.opTimeoutMillis";
-  public static final String DEFAULT_OP_TIMEOUT = "60000";
+  public static final String DEFAULT_OP_TIMEOUT = "3600000";
 
   public static final String FAILURE_MODE_PROPERTY = "memcached.failureMode";
   public static final FailureMode FAILURE_MODE_PROPERTY_DEFAULT =
-      FailureMode.Redistribute;
+      FailureMode.Retry;
 
   public static final String PROTOCOL_PROPERTY = "memcached.protocol";
   public static final ConnectionFactoryBuilder.Protocol DEFAULT_PROTOCOL =
-      ConnectionFactoryBuilder.Protocol.TEXT;
+      ConnectionFactoryBuilder.Protocol.BINARY;
 
   /**
    * The MemcachedClient implementation that will be used to communicate
