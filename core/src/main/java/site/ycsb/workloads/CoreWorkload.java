@@ -113,7 +113,7 @@ public class CoreWorkload extends Workload {
   /**
    * The default maximum length of a field in bytes.
    */
-  public static final String FIELD_LENGTH_PROPERTY_DEFAULT = "4092";
+  public static final String FIELD_LENGTH_PROPERTY_DEFAULT = "4096";
 
   /**
    * The name of the property for the minimum length of a field in bytes.
