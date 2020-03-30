@@ -34,11 +34,13 @@ import java.util.Vector;
 
 import net.spy.memcached.ConnectionFactoryBuilder;
 import net.spy.memcached.FailureMode;
+import net.spy.memcached.CachedData;
 // We also use `net.spy.memcached.MemcachedClient`; it is not imported
 // explicitly and referred to with its full path to avoid conflicts with the
 // class of the same name in this file.
 import net.spy.memcached.internal.GetFuture;
 import net.spy.memcached.internal.OperationFuture;
+import net.spy.memcached.transcoders.Transcoder;
 
 import org.apache.log4j.Logger;
 
@@ -95,6 +97,8 @@ public class MemcachedClient extends DB {
    * with the memcached server.
    */
   private net.spy.memcached.MemcachedClient client;
+
+  private RawBytesTranscoder trans = new RawBytesTranscoder();
 
   /**
    * @returns Underlying Memcached protocol client, implemented by
@@ -196,7 +200,7 @@ public class MemcachedClient extends DB {
       // `toJson` returns an array of zeros of the almost same length as the
       // original actual json we would have normally produced.
       OperationFuture<Boolean> future =
-          memcachedClient().replace(key, objectExpirationTime, toJson(values));
+          memcachedClient().replace(key, objectExpirationTime, toJson(values), trans);
       return getReturnCode(future);
     } catch (Exception e) {
       logger.error("Error updating value with key: " + key, e);
@@ -210,7 +214,7 @@ public class MemcachedClient extends DB {
     key = createQualifiedKey(table, key);
     try {
       OperationFuture<Boolean> future =
-          memcachedClient().add(key, objectExpirationTime, toJson(values));
+          memcachedClient().add(key, objectExpirationTime, toJson(values), trans);
       return getReturnCode(future);
     } catch (Exception e) {
       logger.error("Error inserting value", e);
@@ -270,5 +274,23 @@ public class MemcachedClient extends DB {
     }
 
     return new byte[length];
+  }
+}
+
+class RawBytesTranscoder implements Transcoder<byte[]> {
+  public boolean asyncDecode(CachedData d) {
+    return false;
+  }
+
+  public byte[] decode(CachedData d) {
+    return d.getData();
+  }
+
+  public CachedData encode(byte[] data) {
+    return new CachedData(0, data, CachedData.MAX_SIZE);
+  }
+
+  public int getMaxSize() {
+    return Integer.MAX_VALUE;
   }
 }
