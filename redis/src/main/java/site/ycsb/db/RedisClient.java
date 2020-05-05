@@ -150,6 +150,8 @@ public class RedisClient extends DB {
   public static final String PASSWORD_PROPERTY = "redis.password";
   public static final String CLUSTER_PROPERTY = "redis.cluster";
 
+  public static final long TIMEOUT = 10000; // something long
+
   public static final String INDEX_KEY = "_indices";
 
   public void init() throws DBException {
@@ -173,6 +175,8 @@ public class RedisClient extends DB {
         uriBuilder = uriBuilder.withPassword(password);
       }
 
+      uriBuilder.withTimeout(java.time.Duration.ofSeconds(TIMEOUT));
+
       RedisURI redisUri = uriBuilder.build();
       RedisClusterClient client = RedisClusterClient.create(redisUri);
       redisClient = client;
@@ -189,6 +193,8 @@ public class RedisClient extends DB {
       if (password != null) {
         uriBuilder = uriBuilder.withPassword(password);
       }
+
+      uriBuilder.withTimeout(java.time.Duration.ofSeconds(TIMEOUT));
 
       RedisURI redisUri = uriBuilder.build();
       io.lettuce.core.RedisClient client = io.lettuce.core.RedisClient.create(redisUri);
