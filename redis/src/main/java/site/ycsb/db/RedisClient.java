@@ -29,18 +29,17 @@ import site.ycsb.DB;
 import site.ycsb.DBException;
 import site.ycsb.Status;
 import site.ycsb.StringByteIterator;
-import redis.clients.jedis.BasicCommands;
-import redis.clients.jedis.HostAndPort;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisCommands;
-import redis.clients.jedis.Protocol;
+import io.lettuce.core.AbstractRedisClient;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.KeyValue;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
+import io.lettuce.core.cluster.RedisClusterClient;
+import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
@@ -54,10 +53,100 @@ import java.util.Vector;
  */
 public class RedisClient extends DB {
 
-  private JedisCommands jedis;
+  // Dispatches to the proper methods of the Lettuce implementation.
+  class JustDoTheRightThing {
+    private boolean isClusterMode = false;
+
+    private StatefulRedisConnection<String, String> connection;
+    private StatefulRedisClusterConnection<String, String> clusterConnection;
+
+    private RedisCommands<String, String> redisCommands;
+    private RedisClusterCommands<String, String> redisClusterCommands;
+
+    public JustDoTheRightThing(StatefulRedisConnection<String, String> connection) {
+      isClusterMode = false;
+      this.connection = connection;
+      redisCommands = connection.sync();
+    }
+
+    public JustDoTheRightThing(StatefulRedisClusterConnection<String, String> connection) {
+      isClusterMode = true;
+      clusterConnection= connection;
+      redisClusterCommands = connection.sync();
+    }
+
+    public void closeConnection() {
+      if (isClusterMode) {
+        clusterConnection.close();
+      } else {
+        connection.close();
+      }
+    }
+
+    public Map<String, String> hgetall(String key) {
+      if (isClusterMode) {
+        return redisClusterCommands.hgetall(key);
+      } else {
+        return redisCommands.hgetall(key);
+      }
+    }
+
+    public List<KeyValue<String, String>> hmget(String key, String... fields) {
+      if (isClusterMode) {
+        return redisClusterCommands.hmget(key, fields);
+      } else {
+        return redisCommands.hmget(key, fields);
+      }
+    }
+
+    public String hmset(String key, Map<String, String> map) {
+      if (isClusterMode) {
+        return redisClusterCommands.hmset(key, map);
+      } else {
+        return redisCommands.hmset(key, map);
+      }
+    }
+
+    public Long zadd(String key, double score, String member) {
+      if (isClusterMode) {
+        return redisClusterCommands.zadd(key, score, member);
+      } else {
+        return redisCommands.zadd(key, score, member);
+      }
+    }
+
+    public Long del(String... keys) {
+      if (isClusterMode) {
+        return redisClusterCommands.del(keys);
+      } else {
+        return redisCommands.del(keys);
+      }
+    }
+
+    public Long zrem(String key, String... members) {
+      if (isClusterMode) {
+        return redisClusterCommands.zrem(key, members);
+      } else {
+        return redisCommands.zrem(key, members);
+      }
+    }
+
+    public List<String> zrangebyscore(String key, double min, double max,
+        long offset, long count) {
+      if (isClusterMode) {
+        return redisClusterCommands.zrangebyscore(key, min, max, offset, count);
+      } else {
+        return redisCommands.zrangebyscore(key, min, max, offset, count);
+      }
+    }
+  }
+
+  private AbstractRedisClient redisClient;
+  private JustDoTheRightThing commands;
 
   public static final String HOST_PROPERTY = "redis.host";
   public static final String PORT_PROPERTY = "redis.port";
+  public static final String UNIX_SOCKET_PROPERTY = "redis.uds";
   public static final String PASSWORD_PROPERTY = "redis.password";
   public static final String CLUSTER_PROPERTY = "redis.cluster";
 
@@ -65,38 +154,52 @@ public class RedisClient extends DB {
 
   public void init() throws DBException {
     Properties props = getProperties();
-    int port;
+    int port = RedisURI.DEFAULT_REDIS_PORT;
 
+    String udsString = props.getProperty(UNIX_SOCKET_PROPERTY);
     String portString = props.getProperty(PORT_PROPERTY);
-    if (portString != null) {
-      port = Integer.parseInt(portString);
-    } else {
-      port = Protocol.DEFAULT_PORT;
-    }
     String host = props.getProperty(HOST_PROPERTY);
-
-    boolean clusterEnabled = Boolean.parseBoolean(props.getProperty(CLUSTER_PROPERTY));
-    if (clusterEnabled) {
-      Set<HostAndPort> jedisClusterNodes = new HashSet<>();
-      jedisClusterNodes.add(new HostAndPort(host, port));
-      jedis = new JedisCluster(jedisClusterNodes);
-    } else {
-      jedis = new Jedis(host, port);
-      ((Jedis) jedis).connect();
+    String password = props.getProperty(PASSWORD_PROPERTY);
+    if (udsString == null && portString != null) {
+      port = Integer.parseInt(portString);
     }
 
-    String password = props.getProperty(PASSWORD_PROPERTY);
-    if (password != null) {
-      ((BasicCommands) jedis).auth(password);
+    boolean isClusterMode = Boolean.parseBoolean(props.getProperty(CLUSTER_PROPERTY));
+    if (isClusterMode) {
+      assert(host != null);
+      RedisURI.Builder uriBuilder = RedisURI.Builder.redis(host, port);
+
+      if (password != null) {
+        uriBuilder = uriBuilder.withPassword(password);
+      }
+
+      RedisURI redisUri = uriBuilder.build();
+      RedisClusterClient client = RedisClusterClient.create(redisUri);
+      redisClient = client;
+      commands = new JustDoTheRightThing(client.connect());
+    } else {
+      RedisURI.Builder uriBuilder;
+
+      if (udsString != null) {
+        uriBuilder = RedisURI.Builder.socket(udsString);
+      } else {
+        uriBuilder = RedisURI.Builder.redis(host, port);
+      }
+
+      if (password != null) {
+        uriBuilder = uriBuilder.withPassword(password);
+      }
+
+      RedisURI redisUri = uriBuilder.build();
+      io.lettuce.core.RedisClient client = io.lettuce.core.RedisClient.create(redisUri);
+      redisClient = client;
+      commands = new JustDoTheRightThing(client.connect());
     }
   }
 
   public void cleanup() throws DBException {
-    try {
-      ((Closeable) jedis).close();
-    } catch (IOException e) {
-      throw new DBException("Closing connection failed.");
-    }
+    commands.closeConnection();
+    redisClient.shutdown();
   }
 
   /*
@@ -109,26 +212,24 @@ public class RedisClient extends DB {
     return key.hashCode();
   }
 
-  // XXX jedis.select(int index) to switch to `table`
+  // XXX commands.select(int index) to switch to `table`
 
   @Override
   public Status read(String table, String key, Set<String> fields,
       Map<String, ByteIterator> result) {
     if (fields == null) {
-      StringByteIterator.putAllAsByteIterators(result, jedis.hgetAll(key));
+      StringByteIterator.putAllAsByteIterators(result, commands.hgetall(key));
     } else {
       String[] fieldArray =
           (String[]) fields.toArray(new String[fields.size()]);
-      List<String> values = jedis.hmget(key, fieldArray);
+      List<KeyValue<String, String>> values = commands.hmget(key, fieldArray);
 
-      Iterator<String> fieldIterator = fields.iterator();
-      Iterator<String> valueIterator = values.iterator();
+      Iterator<KeyValue<String, String>> it = values.iterator();
 
-      while (fieldIterator.hasNext() && valueIterator.hasNext()) {
-        result.put(fieldIterator.next(),
-            new StringByteIterator(valueIterator.next()));
+      while (it.hasNext()) {
+        result.put(it.next().getKey(), new StringByteIterator(it.next().getValue()));
       }
-      assert !fieldIterator.hasNext() && !valueIterator.hasNext();
+      assert !it.hasNext();
     }
     return result.isEmpty() ? Status.ERROR : Status.OK;
   }
@@ -136,9 +237,9 @@ public class RedisClient extends DB {
   @Override
   public Status insert(String table, String key,
       Map<String, ByteIterator> values) {
-    if (jedis.hmset(key, StringByteIterator.getStringMap(values))
+    if (commands.hmset(key, StringByteIterator.getStringMap(values))
         .equals("OK")) {
-      jedis.zadd(INDEX_KEY, hash(key), key);
+      commands.zadd(INDEX_KEY, hash(key), key);
       return Status.OK;
     }
     return Status.ERROR;
@@ -146,21 +247,21 @@ public class RedisClient extends DB {
 
   @Override
   public Status delete(String table, String key) {
-    return jedis.del(key) == 0 && jedis.zrem(INDEX_KEY, key) == 0 ? Status.ERROR
+    return commands.del(key) == 0 && commands.zrem(INDEX_KEY, key) == 0 ? Status.ERROR
         : Status.OK;
   }
 
   @Override
   public Status update(String table, String key,
       Map<String, ByteIterator> values) {
-    return jedis.hmset(key, StringByteIterator.getStringMap(values))
+    return commands.hmset(key, StringByteIterator.getStringMap(values))
         .equals("OK") ? Status.OK : Status.ERROR;
   }
 
   @Override
   public Status scan(String table, String startkey, int recordcount,
       Set<String> fields, Vector<HashMap<String, ByteIterator>> result) {
-    Set<String> keys = jedis.zrangeByScore(INDEX_KEY, hash(startkey),
+    List<String> keys = commands.zrangebyscore(INDEX_KEY, hash(startkey),
         Double.POSITIVE_INFINITY, 0, recordcount);
 
     HashMap<String, ByteIterator> values;
